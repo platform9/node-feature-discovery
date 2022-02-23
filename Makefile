@@ -8,9 +8,9 @@ IMAGE_BUILD_CMD := docker build
 IMAGE_BUILD_EXTRA_OPTS :=
 IMAGE_PUSH_CMD := docker push
 
-VERSION := $(shell git describe --tags --dirty --always)
+VERSION := $(shell git describe --tags  --always)
 
-IMAGE_REGISTRY := quay.io/kubernetes_incubator
+IMAGE_REGISTRY := docker.io/platform9
 IMAGE_NAME := node-feature-discovery
 IMAGE_TAG_NAME := $(VERSION)
 IMAGE_REPO := $(IMAGE_REGISTRY)/$(IMAGE_NAME)
