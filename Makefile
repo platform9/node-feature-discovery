@@ -25,9 +25,14 @@ SITE_DESTDIR ?= _site
 JEKYLL_OPTS := -d '$(SITE_DESTDIR)' $(if $(SITE_BASEURL),-b '$(SITE_BASEURL)',)
 
 VERSION := $(shell git describe --tags --dirty --always)
+PF9_TAG_VERSION ?= v0.6.0-pmk
 
-IMAGE_REGISTRY ?= k8s.gcr.io/nfd
-IMAGE_TAG_NAME ?= $(VERSION)
+SRCROOT = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/)
+BUILD_DIR :=$(SRCROOT)/build
+
+
+IMAGE_REGISTRY ?= docker.io/platform9
+IMAGE_TAG_NAME ?= $(PF9_TAG_VERSION)
 IMAGE_EXTRA_TAG_NAMES ?=
 
 IMAGE_NAME := node-feature-discovery
@@ -63,12 +68,16 @@ build:
 install:
 	$(GO_CMD) install -v $(LDFLAGS) ./cmd/...
 
-image: yamls
+$(BUILD_DIR):
+	mkdir -p $@
+
+image: yamls $(BUILD_DIR)
 	$(IMAGE_BUILD_CMD) --build-arg VERSION=$(VERSION) \
 		--build-arg HOSTMOUNT_PREFIX=$(CONTAINER_HOSTMOUNT_PREFIX) \
 		-t $(IMAGE_TAG) \
 		$(foreach tag,$(IMAGE_EXTRA_TAGS),-t $(tag)) \
 		$(IMAGE_BUILD_EXTRA_OPTS) ./
+	echo ${IMAGE_TAG} > $(BUILD_DIR)/container-tag
 
 yamls: $(yaml_instances)
 
@@ -106,7 +115,7 @@ test:
 e2e-test:
 	$(GO_CMD) test -v ./test/e2e/ -args -nfd.repo=$(IMAGE_REPO) -nfd.tag=$(IMAGE_TAG_NAME) -kubeconfig=$(KUBECONFIG) -nfd.e2e-config=$(E2E_TEST_CONFIG)
 
-push:
+push: image
 	$(IMAGE_PUSH_CMD) $(IMAGE_TAG)
 	for tag in $(IMAGE_EXTRA_TAGS); do $(IMAGE_PUSH_CMD) $$tag; done
 
