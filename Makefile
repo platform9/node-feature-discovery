@@ -8,11 +8,15 @@ IMAGE_BUILD_CMD := docker build
 IMAGE_BUILD_EXTRA_OPTS :=
 IMAGE_PUSH_CMD := docker push
 
+SRCROOT = $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/)
+BUILD_DIR :=$(SRCROOT)/build
 VERSION := $(shell git describe --tags --dirty --always)
+PF9_TAG_VERSION ?= v0.6.0-pmk-$(BUILD_NUMBER)
+BUILD_NUMBER ?= 1
 
 IMAGE_REGISTRY := quay.io/kubernetes_incubator
 IMAGE_NAME := node-feature-discovery
-IMAGE_TAG_NAME := $(VERSION)
+IMAGE_TAG_NAME ?= $(PF9_TAG_VERSION)
 IMAGE_REPO := $(IMAGE_REGISTRY)/$(IMAGE_NAME)
 IMAGE_TAG := $(IMAGE_REPO):$(IMAGE_TAG_NAME)
 K8S_NAMESPACE := kube-system
@@ -25,11 +29,15 @@ yaml_instances := $(patsubst %.yaml.template,%.yaml,$(yaml_templates))
 
 all: image
 
+$(BUILD_DIR):
+	mkdir -p $@
+
 image: yamls
 	$(IMAGE_BUILD_CMD) --build-arg NFD_VERSION=$(VERSION) \
 		--build-arg HOSTMOUNT_PREFIX=$(HOSTMOUNT_PREFIX) \
 		-t $(IMAGE_TAG) \
 		$(IMAGE_BUILD_EXTRA_OPTS) ./
+	echo ${IMAGE_TAG} > $(BUILD_DIR)/container-tag
 
 yamls: $(yaml_instances)
 
