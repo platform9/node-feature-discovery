@@ -8,7 +8,7 @@ IMAGE_BUILD_CMD ?= docker build
 IMAGE_BUILD_EXTRA_OPTS ?=
 IMAGE_PUSH_CMD ?= docker push
 CONTAINER_RUN_CMD ?= docker run
-BASE_IMAGE_FULL ?= debian:buster-slim
+BASE_IMAGE_FULL ?= debian:bullseye-slim
 BASE_IMAGE_MINIMAL ?= gcr.io/distroless/base
 
 MDL ?= mdl
@@ -30,15 +30,17 @@ SITE_BASEURL ?=
 SITE_DESTDIR ?= _site
 JEKYLL_OPTS := -d '$(SITE_DESTDIR)' $(if $(SITE_BASEURL),-b '$(SITE_BASEURL)',)
 
-VERSION := $(shell git describe --tags --dirty --always)
+VERSION := $(shell git describe --tags --always)
 
-IMAGE_REGISTRY ?= k8s.gcr.io/nfd
-IMAGE_TAG_NAME ?= $(VERSION)
+registry_url ?= 514845858982.dkr.ecr.us-west-1.amazonaws.com
+#registry_url ?= docker.io
+
+IMAGE_NAME ?= ${registry_url}/platform9/node-feature-discovery
+#IMAGE_NAME ?= docker.io
+IMAGE_TAG_NAME ?= $(VERSION)-pmk-$(TEAMCITY_BUILD_ID)
 IMAGE_EXTRA_TAG_NAMES ?=
 
-IMAGE_NAME := node-feature-discovery
-IMAGE_REPO := $(IMAGE_REGISTRY)/$(IMAGE_NAME)
-IMAGE_TAG := $(IMAGE_REPO):$(IMAGE_TAG_NAME)
+IMAGE_TAG := $(IMAGE_NAME):$(IMAGE_TAG_NAME)
 IMAGE_EXTRA_TAGS := $(foreach tag,$(IMAGE_EXTRA_TAG_NAMES),$(IMAGE_REPO):$(tag))
 
 K8S_NAMESPACE ?= node-feature-discovery
@@ -178,7 +180,12 @@ e2e-test:
 	    $(if $(OPENSHIFT),-nfd.openshift,)
 
 push:
-	$(IMAGE_PUSH_CMD) $(IMAGE_TAG)
+	$(IMAGE_PUSH_CMD) $(IMAGE_TAG) \
+	&& docker rmi $(IMAGE_TAG)
+	($(IMAGE_PUSH_CMD) $(IMAGE_TAG)  || \
+		(aws ecr get-login --region=us-west-1 --no-include-email | sh && \
+		docker push $(IMAGE_TAG))) && \
+		docker rmi $(IMAGE_TAG)
 	$(IMAGE_PUSH_CMD) $(IMAGE_TAG)-minimal
 	for tag in $(IMAGE_EXTRA_TAGS); do $(IMAGE_PUSH_CMD) $$tag; $(IMAGE_PUSH_CMD) $$tag-minimal; done
 
