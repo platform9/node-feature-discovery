@@ -11,6 +11,9 @@ CONTAINER_RUN_CMD ?= docker run
 BASE_IMAGE_FULL ?= debian:bullseye-slim
 BASE_IMAGE_MINIMAL ?= gcr.io/distroless/base
 
+SRC_ROOT=$(abspath $(dir $(lastword $(MAKEFILE_LIST)))/)
+BUILD_ROOT = $(SRC_ROOT)/build
+
 MDL ?= mdl
 
 K8S_CODE_GENERATOR ?= ../code-generator
@@ -98,6 +101,9 @@ image: yamls
 	$(IMAGE_BUILD_CMD) $(IMAGE_BUILD_ARGS) $(IMAGE_BUILD_ARGS_FULL)
 	$(IMAGE_BUILD_CMD) $(IMAGE_BUILD_ARGS) $(IMAGE_BUILD_ARGS_MINIMAL)
 
+scan: 
+	docker run -v $(BUILD_ROOT)/node-feature:/out -v /var/run/docker.sock:/var/run/docker.sock  aquasec/trivy image -s CRITICAL,HIGH -f json  --vuln-type library -o /out/library_vulnerabilities.json --exit-code 22 ${IMAGE_TAG}
+	docker run -v $(BUILD_ROOT)/node-feature:/out -v /var/run/docker.sock:/var/run/docker.sock  aquasec/trivy image -s CRITICAL,HIGH -f json  --vuln-type os -o /out/os_vulnerabilities.json --exit-code 22 ${IMAGE_TAG}
 image-all: ensure-buildx yamls
 # --load : not implemented yet, see: https://github.com/docker/buildx/issues/59
 	$(IMAGE_BUILDX_CMD) $(IMAGE_BUILD_ARGS) $(IMAGE_BUILD_ARGS_FULL)
