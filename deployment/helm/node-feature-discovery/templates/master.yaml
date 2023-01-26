@@ -40,7 +40,7 @@ spec:
             exec:
               command:
               - "/usr/bin/grpc_health_probe"
-              - "-addr=:8080"
+              - "-addr=:{{ .Values.master.port | default "8080" }}"
               {{- if .Values.tls.enable }}
               - "-tls"
               - "-tls-ca-cert=/etc/kubernetes/node-feature-discovery/certs/ca.crt"
@@ -53,7 +53,7 @@ spec:
             exec:
               command:
               - "/usr/bin/grpc_health_probe"
-              - "-addr=:8080"
+              - "-addr=:{{ .Values.master.port | default "8080" }}"
               {{- if .Values.tls.enable }}
               - "-tls"
               - "-tls-ca-cert=/etc/kubernetes/node-feature-discovery/certs/ca.crt"
@@ -64,7 +64,7 @@ spec:
             periodSeconds: 10
             failureThreshold: 10
           ports:
-          - containerPort: 8080
+          - containerPort: {{ .Values.master.port | default "8080" }}
             name: grpc
           env:
           - name: NODE_NAME
@@ -79,6 +79,7 @@ spec:
             {{- if .Values.master.instance | empty | not }}
             - "-instance={{ .Values.master.instance }}"
             {{- end }}
+            - "-port={{ .Values.master.port | default "8080" }}"
             {{- if .Values.enableNodeFeatureApi }}
             - "-enable-nodefeature-api"
             {{- end }}
