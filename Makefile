@@ -11,6 +11,9 @@ CONTAINER_RUN_CMD ?= docker run
 BASE_IMAGE_FULL ?= debian:bullseye-slim
 BASE_IMAGE_MINIMAL ?= gcr.io/distroless/base
 
+SRC_ROOT=$(abspath $(dir $(lastword $(MAKEFILE_LIST)))/)
+BUILD_ROOT = $(SRC_ROOT)/build
+
 MDL ?= mdl
 
 K8S_CODE_GENERATOR ?= ../code-generator
@@ -30,15 +33,17 @@ SITE_BASEURL ?=
 SITE_DESTDIR ?= _site
 JEKYLL_OPTS := -d '$(SITE_DESTDIR)' $(if $(SITE_BASEURL),-b '$(SITE_BASEURL)',)
 
-VERSION := $(shell git describe --tags --dirty --always)
+VERSION := $(shell git describe --tags --always | sed 's/-.*//')
 
-IMAGE_REGISTRY ?= k8s.gcr.io/nfd
-IMAGE_TAG_NAME ?= $(VERSION)
+#registry_url ?= 514845858982.dkr.ecr.us-west-1.amazonaws.com
+registry_url ?= docker.io
+
+IMAGE_NAME ?= ${registry_url}/platform9/node-feature-discovery
+#IMAGE_NAME ?= docker.io
+IMAGE_TAG_NAME ?= $(VERSION)-pmk-$(TEAMCITY_BUILD_ID)
 IMAGE_EXTRA_TAG_NAMES ?=
 
-IMAGE_NAME := node-feature-discovery
-IMAGE_REPO := $(IMAGE_REGISTRY)/$(IMAGE_NAME)
-IMAGE_TAG := $(IMAGE_REPO):$(IMAGE_TAG_NAME)
+IMAGE_TAG := $(IMAGE_NAME):$(IMAGE_TAG_NAME)
 IMAGE_EXTRA_TAGS := $(foreach tag,$(IMAGE_EXTRA_TAG_NAMES),$(IMAGE_REPO):$(tag))
 
 K8S_NAMESPACE ?= node-feature-discovery
@@ -83,6 +88,10 @@ IMAGE_BUILD_ARGS_MINIMAL = --target minimal \
 	            	   $(foreach tag,$(IMAGE_EXTRA_TAGS),-t $(tag)-minimal) \
 	            	   $(IMAGE_BUILD_EXTRA_OPTS) ./
 
+$(BUILD_ROOT):
+	mkdir -p $@
+	mkdir -p $@/node-feature
+
 all: image
 
 build:
@@ -94,7 +103,11 @@ install:
 
 image: yamls
 	$(IMAGE_BUILD_CMD) $(IMAGE_BUILD_ARGS) $(IMAGE_BUILD_ARGS_FULL)
-	$(IMAGE_BUILD_CMD) $(IMAGE_BUILD_ARGS) $(IMAGE_BUILD_ARGS_MINIMAL)
+
+scan: 
+	mkdir -p $(BUILD_ROOT)/node-feature
+	docker run -v $(BUILD_ROOT)/node-feature:/out -v /var/run/docker.sock:/var/run/docker.sock  aquasec/trivy image -s CRITICAL,HIGH -f table  --vuln-type library -o /out/library_vulnerabilities.json --exit-code 22 ${IMAGE_TAG}
+	docker run -v $(BUILD_ROOT)/node-feature:/out -v /var/run/docker.sock:/var/run/docker.sock  aquasec/trivy image -s CRITICAL,HIGH -f table  --vuln-type os -o /out/os_vulnerabilities.json --exit-code 0 ${IMAGE_TAG}
 
 image-all: ensure-buildx yamls
 # --load : not implemented yet, see: https://github.com/docker/buildx/issues/59
@@ -178,9 +191,9 @@ e2e-test:
 	    $(if $(OPENSHIFT),-nfd.openshift,)
 
 push:
-	$(IMAGE_PUSH_CMD) $(IMAGE_TAG)
-	$(IMAGE_PUSH_CMD) $(IMAGE_TAG)-minimal
-	for tag in $(IMAGE_EXTRA_TAGS); do $(IMAGE_PUSH_CMD) $$tag; $(IMAGE_PUSH_CMD) $$tag-minimal; done
+	docker login
+	$(IMAGE_PUSH_CMD) $(IMAGE_TAG) \
+	&& docker rmi $(IMAGE_TAG)
 
 push-all: ensure-buildx yamls
 	$(IMAGE_BUILDX_CMD) --push $(IMAGE_BUILD_ARGS) $(IMAGE_BUILD_ARGS_FULL)
