@@ -78,13 +78,13 @@ IMAGE_BUILD_ARGS = --build-arg VERSION=$(VERSION) \
 	    	   --build-arg BASE_IMAGE_FULL=$(BASE_IMAGE_FULL) \
 	    	   --build-arg BASE_IMAGE_MINIMAL=$(BASE_IMAGE_MINIMAL)
 
-IMAGE_BUILD_ARGS_FULL = --target full \
+IMAGE_BUILD_ARGS_MINIMAL = --target minimal \
                 	-t $(IMAGE_TAG) \
 	    		$(foreach tag,$(IMAGE_EXTRA_TAGS),-t $(tag)) \
 	    		$(IMAGE_BUILD_EXTRA_OPTS) ./
 
-IMAGE_BUILD_ARGS_MINIMAL = --target minimal \
-                	   -t $(IMAGE_TAG)-minimal \
+IMAGE_BUILD_ARGS_FULL = --target full \
+                	   -t $(IMAGE_TAG)-full \
 	            	   $(foreach tag,$(IMAGE_EXTRA_TAGS),-t $(tag)-minimal) \
 	            	   $(IMAGE_BUILD_EXTRA_OPTS) ./
 
@@ -102,7 +102,7 @@ install:
 	$(GO_CMD) install -v $(LDFLAGS) ./cmd/...
 
 image: yamls
-	$(IMAGE_BUILD_CMD) $(IMAGE_BUILD_ARGS) $(IMAGE_BUILD_ARGS_FULL)
+	$(IMAGE_BUILD_CMD) $(IMAGE_BUILD_ARGS) $(IMAGE_BUILD_ARGS_MINIMAL)
 
 scan: 
 	mkdir -p $(BUILD_ROOT)/node-feature
@@ -201,7 +201,7 @@ push-all: ensure-buildx yamls
 
 poll-images:
 	set -e; \
-	tags="$(foreach tag,$(IMAGE_TAG_NAME) $(IMAGE_EXTRA_TAG_NAMES),$(tag) $(tag)-minimal)" \
+	tags="$(foreach tag,$(IMAGE_TAG_NAME) $(IMAGE_EXTRA_TAG_NAMES),$(tag) $(tag)-minimal $(tag)-full)" \
 	base_url=`echo $(IMAGE_REPO) | sed -e s'!\([^/]*\)!\1/v2!'`; \
 	for tag in $$tags; do \
 	    image=$(IMAGE_REPO):$$tag \
