@@ -80,12 +80,12 @@ IMAGE_BUILD_ARGS = --build-arg VERSION=$(VERSION) \
 
 IMAGE_BUILD_ARGS_MINIMAL = --target minimal \
                 	-t $(IMAGE_TAG) \
-	    		$(foreach tag,$(IMAGE_EXTRA_TAGS),-t $(tag)) \
+	    		$(foreach tag,$(IMAGE_EXTRA_TAGS),-t $(tag)-minimal) \
 	    		$(IMAGE_BUILD_EXTRA_OPTS) ./
 
 IMAGE_BUILD_ARGS_FULL = --target full \
                 	   -t $(IMAGE_TAG)-full \
-	            	   $(foreach tag,$(IMAGE_EXTRA_TAGS),-t $(tag)-minimal) \
+	            	   $(foreach tag,$(IMAGE_EXTRA_TAGS),-t $(tag)-full) \
 	            	   $(IMAGE_BUILD_EXTRA_OPTS) ./
 
 $(BUILD_ROOT):
