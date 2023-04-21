@@ -1,6 +1,6 @@
 module sigs.k8s.io/node-feature-discovery
 
-go 1.17
+go 1.19
 
 require (
 	github.com/fsnotify/fsnotify v1.4.9
@@ -15,9 +15,9 @@ require (
 	github.com/onsi/gomega v1.10.1
 	github.com/smartystreets/assertions v1.2.0
 	github.com/smartystreets/goconvey v1.6.4
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.8.0
 	github.com/vektra/errors v0.0.0-20140903201135-c64d83aba85a
-	golang.org/x/net v0.1.1-0.20221104162952-702349b0e862
+	golang.org/x/net v0.7.0
 	google.golang.org/grpc v1.40.0
 	google.golang.org/protobuf v1.27.1
 	k8s.io/api v0.23.13
@@ -26,7 +26,7 @@ require (
 	k8s.io/klog/v2 v2.30.0
 	k8s.io/kubectl v0.23.13
 	k8s.io/kubelet v0.23.13
-	k8s.io/kubernetes v1.23.13
+	k8s.io/kubernetes v1.23.14
 	sigs.k8s.io/yaml v1.2.0
 )
 
@@ -146,7 +146,7 @@ require (
 	github.com/spf13/cobra v1.2.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/storageos/go-api v2.2.0+incompatible // indirect
-	github.com/stretchr/objx v0.2.0 // indirect
+	github.com/stretchr/objx v0.4.0 // indirect
 	github.com/syndtr/gocapability v0.0.0-20200815063812-42c35b437635 // indirect
 	github.com/vishvananda/netlink v1.1.0 // indirect
 	github.com/vishvananda/netns v0.0.0-20200728191858-db3c7e526aae // indirect
@@ -172,9 +172,9 @@ require (
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.1.0 // indirect
-	golang.org/x/term v0.1.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/term v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/time v0.0.0-20210723032227-1f47c861a9ac // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/api v0.46.0 // indirect
@@ -186,7 +186,7 @@ require (
 	gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 // indirect
 	gopkg.in/warnings.v0 v0.1.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20220521103104-8f96da9f5d5e // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	howett.net/plist v0.0.0-20181124034731-591f970eefbb // indirect
 	k8s.io/apiserver v0.23.13 // indirect
 	k8s.io/cloud-provider v0.23.13 // indirect
