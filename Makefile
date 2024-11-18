@@ -36,7 +36,7 @@ JEKYLL_OPTS := -d '$(SITE_DESTDIR)' $(if $(SITE_BASEURL),-b '$(SITE_BASEURL)',)
 VERSION := $(shell git describe --tags --always | sed 's/-.*//')
 
 #registry_url ?= 514845858982.dkr.ecr.us-west-1.amazonaws.com
-registry_url ?= docker.io
+registry_url ?= quay.io
 
 IMAGE_NAME ?= ${registry_url}/platform9/node-feature-discovery
 #IMAGE_NAME ?= docker.io
